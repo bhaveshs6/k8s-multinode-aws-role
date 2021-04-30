@@ -36,12 +36,10 @@
                             "exec-opts": ["native.cgroupdriver=systemd"]
                   }
          dest: /etc/docker/daemon.json
-  register: y
 - name: Restart docker service
   service:
          name: docker
          state: restarted
-  when: y.changed is true
   changed_when: false
 - name: Set bridge-nf-call-iptables to 1
   shell: 'echo "1" >> /proc/sys/net/bridge/bridge-nf-call-iptables'

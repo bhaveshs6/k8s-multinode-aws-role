@@ -1,5 +1,5 @@
 - name: kubeadm init
-  shell: kubeadm init --pod-network-cidr=10.240.0.0/16  --ignore-preflight-errors=NumCPU --ignore-preflight-errors=Mem 2> /dev/null | tail -n 2
+  shell: "set -o pipefail && kubeadm init --pod-network-cidr=10.240.0.0/16  --ignore-preflight-errors=NumCPU --ignore-preflight-errors=Mem 2> /dev/null | tail -n 2"
   args:
          creates: /etc/kubernetes/admin.conf
   register: z
