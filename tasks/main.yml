@@ -23,7 +23,8 @@
          state: started
          enabled: yes
 - name: Check if k8s images are present
-  shell: "docker images | grep k8s | wc -l"
+  shell: "set -o pipefail && docker images | grep k8s | wc -l"
+  changed_when: false
   register: x
 - name: Pull k8s images
   command: kubeadm config images pull
@@ -41,35 +42,13 @@
          name: docker
          state: restarted
   when: y.changed is true
+  changed_when: false
 - name: Set bridge-nf-call-iptables to 1
   shell: 'echo "1" >> /proc/sys/net/bridge/bridge-nf-call-iptables'
   changed_when: false
-- name: kubeadm init
-  shell: kubeadm init --pod-network-cidr=10.240.0.0/16  --ignore-preflight-errors=NumCPU --ignore-preflight-errors=Mem 2> /dev/null | tail -n 2
-  args:
-         creates: /etc/kubernetes/admin.conf
-  register: z
-  notify: apply flannel
-- name: Get previous output
-  debug:
-         var: z
-- name: Get token
-  local_action:
-         module: copy
-         content: "{{ z.stdout }}"
-         dest: /tmp/token
-- name: Create ~/.kube directory
-  file:
-         name: ~/.kube
-         state: directory
-- name: Copy /etc/kubernetes/admin.conf to ~/.kube/config
-  copy:
-         src: /etc/kubernetes/admin.conf
-         dest: ~/.kube/config
-         remote_src: yes
-         owner: root
-         group: root
-- name: Copy flannel yaml file to node
-  copy:
-         src: kube-flannel.yml
-         dest: ~/kube-flannel.yml
+- name: Configure Master
+  include_tasks: master.yml
+  when: ansible_hostname in groups.tag_Node_master
+- name: Configure Worker
+  include_tasks: worker.yml
+  when: ansible_hostname in groups.tag_Node_worker
