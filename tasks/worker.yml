@@ -1,0 +1,6 @@
+- name: Copy join command
+  copy:
+          src: /tmp/token
+          dest: /tmp/token
+- name: Run join command
+  command: bash /tmp/token
